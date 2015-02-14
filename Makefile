@@ -1,4 +1,4 @@
-NAME=farnese/ruby
+NAME=reimbursery/ruby-based-service
 VERSION=$(shell cat VERSION)
 
 .PHONY: all
