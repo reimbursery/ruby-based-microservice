@@ -1,4 +1,4 @@
-NAME=reimbursery/ruby-based-service
+NAME=reimbursery/ruby-based-microservice
 VERSION=$(shell cat VERSION)
 
 .PHONY: all
