@@ -77,3 +77,4 @@ ONBUILD ADD ./db /app/db
 ONBUILD ADD ./public /app/public
 ONBUILD ADD ./config.ru /app/config.ru
 ONBUILD ADD ./Gemfile /app/Gemfile
+ONBUILD RUN cd /app && bundle intall --without production

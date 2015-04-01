@@ -1,4 +1,4 @@
-NAME=reimbursery/ruby-based-microservice
+NAME=quay.io/reimbursery/ruby-based-microservice
 VERSION=$(shell cat VERSION)
 
 .PHONY: all
