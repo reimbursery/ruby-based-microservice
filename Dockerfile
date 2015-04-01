@@ -1,9 +1,8 @@
 FROM phusion/baseimage:0.9.13
 MAINTAINER Michael Williams <mike@reimbursery.com>
-ENV REFRESHED_AT 2015-02-12
+ENV REFRESHED_AT 2015-04-01
 
 # Set correct environment variables.
-
 ENV RUBY_MAJOR 2.2
 ENV RUBY_VERSION 2.2.0
 
@@ -33,24 +32,26 @@ ENV LC_ALL en_US.UTF-8
 # See discussion at: https://github.com/phusion/baseimage-docker/issues/58
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
+# Install dependencies and useful tools.
+# TODO(mtwilliams): Install Postgres--iif production?
+RUN apt-get update \
+	&& apt-get install -y autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev \
+	&& apt-get install -y sqlite3 libsqlite3-dev
+
 # Bootstrap install MRI.
 # TODO(mtwilliams): Use Rubinius instead?
-
-RUN apt-get update \
-	&& apt-get install -y autoconf bison build-essential libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libncurses5-dev libffi-dev libgdbm3 libgdbm-dev ruby \
-	&& rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /usr/src/ruby \
+RUN apt-get install -y ruby \
+	&& mkdir -p /usr/src/ruby \
 	&& curl -SL "http://cache.ruby-lang.org/pub/ruby/2.2/ruby-2.2.0.tar.gz" | tar -xz -f - -C /usr/src/ruby --strip-components=1 \
 	&& cd /usr/src/ruby \
 	&& autoconf \
 	&& ./configure --disable-install-doc \
 	&& make -j"$(nproc)" \
 	&& make install \
-	&& apt-get purge -y --auto-remove build-essential autoconf automake bison libgdbm-dev libffi-dev ruby \
+	&& apt-get purge -y --auto-remove ruby \
 	&& rm -r /usr/src/ruby
 
-# Never install documentation for Gems; seriously RDoc is too slow.
+# Never install documentation for Gems; it useless bloat and RDoc is too slow.
 RUN echo 'gem: --no-rdoc --no-ri' >> "$HOME/.gemrc"
 
 # Make Gems globally accessable.
@@ -63,3 +64,16 @@ RUN gem install bundler \
 # Don't create pesky .bundle folders everywhere.
 ENV BUNDLE_APP_CONFIG $GEM_HOME
 
+# Clean up.
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Run the microservice.
+RUN mkdir /etc/service/app
+ADD app.sh /etc/service/app/run
+ONBUILD ADD ./app /app/app
+ONBUILD ADD ./LICENSE /app/LICENSE
+ONBUILD ADD ./config /app/config
+ONBUILD ADD ./db /app/db
+ONBUILD ADD ./public /app/public
+ONBUILD ADD ./config.ru /app/config.ru
+ONBUILD ADD ./Gemfile /app/Gemfile
