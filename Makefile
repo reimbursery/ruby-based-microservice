@@ -8,6 +8,7 @@ all:
 
 bump: all
 	docker tag -f $(NAME):$(VERSION) $(NAME):latest
+	git tag $(VERSION)
 
 push: all bump
 	docker push $(NAME)
